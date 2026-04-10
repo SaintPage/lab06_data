@@ -216,3 +216,42 @@ ggplot(predicciones, aes(x = price_real, y = price_pred)) +
 ```
 
 Los resultados muestran que el modelo logra captar la tendencia general de los precios, aunque presenta dificultades para estimar correctamente valores extremos, ya que KNN tiende a suavizar las predicciones. Esto puede observarse en el gráfico de valores reales versus predichos, donde los puntos más alejados de la diagonal representan mayores errores de predicción. En términos generales, el modelo resulta útil para obtener una aproximación del precio, aunque su precisión disminuye cuando existen precios muy altos o muy dispersos en el conjunto de datos.
+
+
+# 2. Analice los resultados del modelo de regresión usando KNN. ¿Qué tan bien le fue prediciendo? Utilice las métricas correctas.
+```{r}
+library(yardstick)
+library(dplyr)
+
+metricas_knn <- predicciones %>%
+  summarise(
+    RMSE = rmse_vec(truth = price_real, estimate = price_pred),
+    MAE  = mae_vec(truth = price_real, estimate = price_pred),
+    R2   = rsq_vec(truth = price_real, estimate = price_pred)
+  )
+
+metricas_knn
+```
+```{r}
+baseline_pred <- mean(train_data$price, na.rm = TRUE)
+
+baseline_df <- test_data %>%
+  mutate(
+    price_real = price,
+    price_pred_base = baseline_pred
+  )
+
+metricas_base <- baseline_df %>%
+  summarise(
+    RMSE_base = rmse_vec(truth = price_real, estimate = price_pred_base),
+    MAE_base  = mae_vec(truth = price_real, estimate = price_pred_base),
+    R2_base   = rsq_vec(truth = price_real, estimate = price_pred_base)
+  )
+
+metricas_base
+```
+ El modelo de regresión KNN presentó un buen desempeño predictivo. Se obtuvo un RMSE de 1324.071, un MAE de 163.1279 y un R² de 0.6604, lo que indica que el modelo explica aproximadamente el 66% de la variabilidad del precio. El error absoluto medio sugiere que, en promedio, las predicciones difieren en unas 163 unidades monetarias respecto al valor real, mientras que el RMSE muestra que todavía existen algunos errores grandes en ciertos casos. Al compararlo con el modelo base, el KNN mejora notablemente la predicción, ya que reduce el RMSE de 4008.122 a 1324.071 y el MAE de 939.6599 a 163.1279. En consecuencia, se concluye que el modelo KNN tuvo un desempeño satisfactorio y predijo considerablemente mejor que una referencia simple.
+ 
+# 3. Compare los resultados con el modelo de regresión lineal, el mejor modelo de árbol de regresión y de naive bayes que hizo en las entregas pasadas. ¿Cuál funcionó mejor?
+
+
