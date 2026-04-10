@@ -254,4 +254,4 @@ metricas_base
  
 # 3. Compare los resultados con el modelo de regresión lineal, el mejor modelo de árbol de regresión y de naive bayes que hizo en las entregas pasadas. ¿Cuál funcionó mejor?
 
-
+Al comparar los modelos de regresión, se observa que el árbol de regresión fue el que presentó el mejor desempeño general, con RMSE = 1190.68 y R² = 0.7282, por lo que fue el modelo que mejor explicó la variabilidad del precio. El modelo KNN obtuvo resultados también muy buenos, con R² = 0.6604, y además presentó el menor MAE = 163.13, lo que indica menores errores absolutos promedio; sin embargo, su RMSE fue mayor que el del árbol, por lo que globalmente quedó en segundo lugar. La regresión lineal tuvo un desempeño aceptable pero inferior, con R² = 0.4183, lo que sugiere que no logra captar adecuadamente la complejidad de la relación entre las variables y el precio. Finalmente, Naive Bayes fue el peor modelo, con R² = 0.0067, mostrando una capacidad predictiva muy baja para esta tarea. En conclusión, el mejor modelo fue el árbol de regresión, seguido de KNN, regresión lineal y Naive Bayes.
