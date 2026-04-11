@@ -259,6 +259,7 @@ Al comparar los modelos de regresión, se observa que el árbol de regresión fu
 # 4 Haga un modelo de clasificación, use la variable categórica que hizo con el precio de las casas (barata, media y cara) como variable respuesta. 
 
 ```{r}
+# Preparar datos para clasificación
 train_class <- train_data %>%
   select(-all_of(vars_quitar)) %>%
   select(-all_of(cols_muchos_na)) %>%
@@ -281,11 +282,11 @@ q2 <- quantile(train_class$price, probs = 2/3, na.rm = TRUE)
 
 q1
 q2
-
 ```
 
 ```{r}
- mutate(
+train_class <- train_class %>%
+  mutate(
     price_cat = case_when(
       price <= q1 ~ "barata",
       price <= q2 ~ "media",
@@ -306,12 +307,16 @@ test_class <- test_class %>%
 
 tabyl(train_class$price_cat)
 tabyl(test_class$price_cat)
+```
 
-# Quitamos price para que no se use como predictor
+```{r}
+# Quitar price para que no se use como predictor 
 train_class_model <- train_class %>% select(-price)
 test_class_model  <- test_class %>% select(-price)
+```
 
-# ===== Receta para clasificación =====
+```{r}
+# Receta para clasificación
 receta_knn_class <- recipe(price_cat ~ ., data = train_class_model) %>%
   step_other(all_nominal_predictors(), threshold = 0.01) %>%
   step_dummy(all_nominal_predictors(), one_hot = TRUE) %>%
@@ -319,7 +324,9 @@ receta_knn_class <- recipe(price_cat ~ ., data = train_class_model) %>%
   step_normalize(all_numeric_predictors())
 ```
 
+
 ```{r}
+# Modelo KNN de clasificación 
 modelo_knn_class <- nearest_neighbor(
   neighbors = 5
 ) %>%
@@ -333,7 +340,9 @@ workflow_knn_class <- workflow() %>%
 fit_knn_class <- fit(workflow_knn_class, data = train_class_model)
 ```
 
+
 ```{r}
+#  Predicciones en el conjunto de prueba
 pred_class <- predict(fit_knn_class, new_data = test_class_model, type = "class")
 pred_prob  <- predict(fit_knn_class, new_data = test_class_model, type = "prob")
 
@@ -344,11 +353,10 @@ resultados_class <- test_class_model %>%
 head(resultados_class)
 ```
 
-Se construyó un modelo de clasificación KNN usando como variable respuesta una categorización del precio en tres niveles: barata, media y cara. Los puntos de corte se definieron con base en los terciles del conjunto de entrenamiento, para evitar fuga de información. Posteriormente, se eliminó la variable numérica price del conjunto de predictores, de modo que el modelo clasificara las propiedades únicamente a partir de sus características estructurales, de ubicación, disponibilidad y atributos del anfitrión.
-
 # 5. Utilice los modelos con el conjunto de prueba y determine la eficiencia del algoritmo para predecir y clasificar.
 
 ```{r}
+# Métricas de clasificación
 accuracy_val <- accuracy(resultados_class, truth = price_cat, estimate = .pred_class)
 kap_val      <- kap(resultados_class, truth = price_cat, estimate = .pred_class)
 prec_val     <- precision(resultados_class, truth = price_cat, estimate = .pred_class, estimator = "macro")
@@ -367,25 +375,24 @@ metricas_clasificacion
 ```
 
 ```{r}
+# ===== Matriz de confusión =====
 matriz_conf <- conf_mat(resultados_class, truth = price_cat, estimate = .pred_class)
 matriz_conf
+```
+```{r}
 autoplot(matriz_conf, type = "heatmap")
 ```
 
-
 ```{r}
-# Métricas por clase
+# Cantidad de observaciones por clase 
 resultados_class %>%
   group_by(price_cat) %>%
   summarise(n = n())
-
-metricas_por_clase <- metric_set(sens, spec, ppv, npv)
-
-metricas_por_clase(resultados_class, truth = price_cat, estimate = .pred_class)
 ```
+
 
 El modelo KNN de clasificación fue evaluado con el conjunto de prueba mediante métricas de clasificación multiclase. La métrica principal fue el accuracy, que indica la proporción total de propiedades clasificadas correctamente en las categorías barata, media y cara. Además, se calcularon precisión, recall y F1-score para obtener una evaluación más completa del desempeño del algoritmo.
 
 Los resultados muestran que el modelo alcanzó un accuracy de X, una precisión macro de X, un recall macro de X y un F1-score macro de X. En general, esto indica que el algoritmo tiene una capacidad razonable para clasificar propiedades según su nivel de precio.
 
-A partir de la matriz de confusión se observa en qué clases el modelo acierta más y en cuáles presenta mayores errores. En este caso, las confusiones suelen darse entre categorías contiguas, por ejemplo entre propiedades baratas y medias o entre medias y caras, lo cual tiene sentido porque sus características pueden ser similares. En términos generales, el modelo muestra una eficiencia aceptable para clasificar, aunque todavía puede mejorarse mediante ajuste de hiperparámetros y validación cruzada.
+A partir de la matriz de confusión se observa en qué clases el modelo acierta más y en cuáles presenta mayores errores. Las confusiones suelen darse entre categorías contiguas, por ejemplo entre propiedades baratas y medias o entre medias y caras, lo cual tiene sentido porque sus características pueden ser similares. En términos generales, el modelo muestra una eficiencia aceptable para clasificar, aunque todavía puede mejorarse mediante ajuste de hiperparámetros y validación cruzada.
