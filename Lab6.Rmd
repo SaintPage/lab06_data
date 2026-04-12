@@ -375,7 +375,7 @@ metricas_clasificacion
 ```
 
 ```{r}
-# ===== Matriz de confusión =====
+# Matriz de confusión 
 matriz_conf <- conf_mat(resultados_class, truth = price_cat, estimate = .pred_class)
 matriz_conf
 ```
@@ -396,3 +396,24 @@ El modelo KNN de clasificación fue evaluado con el conjunto de prueba mediante 
 Los resultados muestran que el modelo alcanzó un accuracy de X, una precisión macro de X, un recall macro de X y un F1-score macro de X. En general, esto indica que el algoritmo tiene una capacidad razonable para clasificar propiedades según su nivel de precio.
 
 A partir de la matriz de confusión se observa en qué clases el modelo acierta más y en cuáles presenta mayores errores. Las confusiones suelen darse entre categorías contiguas, por ejemplo entre propiedades baratas y medias o entre medias y caras, lo cual tiene sentido porque sus características pueden ser similares. En términos generales, el modelo muestra una eficiencia aceptable para clasificar, aunque todavía puede mejorarse mediante ajuste de hiperparámetros y validación cruzada.
+
+# 6. Haga un análisis de la eficiencia del modelo de clasificación usando una matriz de confusión. Tenga en cuenta la efectividad, donde el algoritmo se equivocó más, donde se equivocó menos y la importancia que tienen los errores.
+
+```{r}
+matriz_tabla <- as.data.frame(matriz_conf$table)
+
+# Aciertos
+aciertos <- matriz_tabla %>%
+  filter(Prediction == Truth) %>%
+  arrange(desc(Freq))
+
+aciertos
+
+# Errores
+errores <- matriz_tabla %>%
+  filter(Prediction != Truth) %>%
+  arrange(desc(Freq))
+
+errores
+```
+La matriz de confusión muestra que el modelo de clasificación tiene una efectividad aceptable, pero no uniforme entre las tres categorías de precio. Los errores más frecuentes se presentan entre las clases barata y media, así como entre media y cara, lo que indica que el algoritmo tiene mayor dificultad para distinguir propiedades cuyos precios se encuentran en rangos cercanos. En particular, la mayor confusión ocurrió al clasificar propiedades que en realidad eran medias como baratas (442 casos) y propiedades baratas como medias (418 casos). También se observaron errores importantes entre las categorías media y cara. En contraste, los errores menos frecuentes fueron entre las clases extremas, es decir, clasificar propiedades caras como baratas (98 casos) o baratas como caras (108 casos), lo cual es positivo porque significa que el modelo rara vez confunde segmentos muy distintos. En términos prácticos, esto sugiere que el KNN logra captar la diferencia general entre propiedades de bajo y alto precio, pero presenta más problemas en la categoría intermedia. Además, los errores entre categorías contiguas son menos graves que los errores entre categorías extremas, ya que reflejan diferencias más sutiles en el precio. En conclusión, el modelo resulta útil para clasificar propiedades según su nivel de precio, aunque su principal debilidad está en separar con precisión las observaciones cercanas a los puntos de corte entre categorías.

@@ -818,7 +818,7 @@ metricas_clasificacion</code></pre>
 ## 3 precision macro          0.689
 ## 4 recall    macro          0.689
 ## 5 f_meas    macro          0.689</code></pre>
-<pre class="r"><code># ===== Matriz de confusión =====
+<pre class="r"><code># Matriz de confusión 
 matriz_conf &lt;- conf_mat(resultados_class, truth = price_cat, estimate = .pred_class)
 matriz_conf</code></pre>
 <pre><code>##           Truth
@@ -855,6 +855,58 @@ y medias o entre medias y caras, lo cual tiene sentido porque sus
 características pueden ser similares. En términos generales, el modelo
 muestra una eficiencia aceptable para clasificar, aunque todavía puede
 mejorarse mediante ajuste de hiperparámetros y validación cruzada.</p>
+</div>
+<div id="haga-un-análisis-de-la-eficiencia-del-modelo-de-clasificación-usando-una-matriz-de-confusión.-tenga-en-cuenta-la-efectividad-donde-el-algoritmo-se-equivocó-más-donde-se-equivocó-menos-y-la-importancia-que-tienen-los-errores." class="section level1">
+<h1>6. Haga un análisis de la eficiencia del modelo de clasificación
+usando una matriz de confusión. Tenga en cuenta la efectividad, donde el
+algoritmo se equivocó más, donde se equivocó menos y la importancia que
+tienen los errores.</h1>
+<pre class="r"><code>matriz_tabla &lt;- as.data.frame(matriz_conf$table)
+
+# Aciertos
+aciertos &lt;- matriz_tabla %&gt;%
+  filter(Prediction == Truth) %&gt;%
+  arrange(desc(Freq))
+
+aciertos</code></pre>
+<pre><code>##   Prediction  Truth Freq
+## 1     barata barata 1505
+## 2       cara   cara 1429
+## 3      media  media 1164</code></pre>
+<pre class="r"><code># Errores
+errores &lt;- matriz_tabla %&gt;%
+  filter(Prediction != Truth) %&gt;%
+  arrange(desc(Freq))
+
+errores</code></pre>
+<pre><code>##   Prediction  Truth Freq
+## 1     barata  media  442
+## 2      media barata  418
+## 3       cara  media  393
+## 4      media   cara  392
+## 5     barata   cara  108
+## 6       cara barata   98</code></pre>
+<p>La matriz de confusión muestra que el modelo de clasificación tiene
+una efectividad aceptable, pero no uniforme entre las tres categorías de
+precio. Los errores más frecuentes se presentan entre las clases barata
+y media, así como entre media y cara, lo que indica que el algoritmo
+tiene mayor dificultad para distinguir propiedades cuyos precios se
+encuentran en rangos cercanos. En particular, la mayor confusión ocurrió
+al clasificar propiedades que en realidad eran medias como baratas (442
+casos) y propiedades baratas como medias (418 casos). También se
+observaron errores importantes entre las categorías media y cara. En
+contraste, los errores menos frecuentes fueron entre las clases
+extremas, es decir, clasificar propiedades caras como baratas (98 casos)
+o baratas como caras (108 casos), lo cual es positivo porque significa
+que el modelo rara vez confunde segmentos muy distintos. En términos
+prácticos, esto sugiere que el KNN logra captar la diferencia general
+entre propiedades de bajo y alto precio, pero presenta más problemas en
+la categoría intermedia. Además, los errores entre categorías contiguas
+son menos graves que los errores entre categorías extremas, ya que
+reflejan diferencias más sutiles en el precio. En conclusión, el modelo
+resulta útil para clasificar propiedades según su nivel de precio,
+aunque su principal debilidad está en separar con precisión las
+observaciones cercanas a los puntos de corte entre categorías.</p>
 </div>
 
 
